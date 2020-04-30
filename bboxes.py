@@ -4,7 +4,7 @@ import skimage.io as io
 
 label_path = '../wider/labels'
 boxes = ['../wider/images/wider_face_split/wider_face_' + s for s in ['train_bbx_gt.txt', 'val_bbx_gt.txt']]
-IMAGES = ['../wider/images/WIDER_' + s for s in ['train', 'valid']]
+IMAGES_DIR = ['../wider/images/WIDER_' + s for s in ['train', 'val']]
 
 if not os.path.exists(label_path):
     os.makedirs(label_path)
@@ -17,32 +17,40 @@ def names():
             ANNOTS[i] = fh.readlines()
             size[i] = len(ANNOTS[i])
 
-    for j in range(len(IMAGES)):
+    for j in range(len(IMAGES_DIR)):
 
         i = 0
         cur_ANNOTS = ANNOTS[j]
         while i < size[j]:
+            face_num = int(cur_ANNOTS[i + 1]) # count how many faces are in the pic  
+            """E.g: 0--Parade/0_Parade_marchingband_1_465.jpg
+            126
+            345 211 4 4 2 0 0 0 2 0 
+            331 126 3 3 0 0 0 1 0 0 
+            250 126 3 4 2 0 0 0 2 0 
+            221 128 4 5 0 0 0 1 0 0 
+            ...
+            """
+            name = cur_ANNOTS[i][:-1] # an image name with a path (strip newline)
+            """
+            E.g. 0--Parade/0_Parade_marchingband_1_465.jpg
+            """
+            actual_name = name.split('/')[1] # just an image name
+            """0_Parade_marchingband_1_465.jpg"""
 
-            face_num = int(cur_ANNOTS[i + 1])
-            # if not face_num:
-            #     i += 3
-            #     continue
-
-            name = cur_ANNOTS[i][:-1] # ваще полное имя
-            actual_name = name.split('/')[1] # просто имя
             
-            IMG = IMAGES[j] + '/' + actual_name
+            IMG = IMAGES_DIR[j] + '/' + actual_name # after using flattener.sh, one has to join like this
             width, height = Image.open(IMG).size
             width, height = float(width), float(height)
 
-            if face_num > 750:
+            if face_num > 750: # just to make sure everything is working fine
                 print(name, face_num)
             
-            PREF = label_path + '/' + IMAGES[j].split('/')[3]
-            LABEL = PREF + '/' + actual_name[:-4]
+            PREFIX = label_path + '/' + IMAGES_DIR[j].split('/')[3] # add WIDER_train or WIDER_val dirs to label dir
+            LABEL = PREFIX + '/' + actual_name[:-4] # a label name has no extension in it (we'll need to convert it to txt format just below)
 
-            if not os.path.exists(PREF):
-                os.mkdir(PREF)
+            if not os.path.exists(PREFIX):
+                os.mkdir(PREFIX)
 
             with open(LABEL + '.txt', 'w') as f:
                 if not face_num:
@@ -58,14 +66,7 @@ def names():
                     y = float(s[1])
                     w = float(s[2])
                     h = float(s[3])
-                    # if x <= 0.0:
-                    #     x = 0.001
-                    # if y <= 0.0:
-                    #     y = 0.001
-                    # if w <= 0.0:
-                    #     w = 0.001
-                    # if h <= 0.0:
-                    #     h = 0.001
+
                     if x < 0:
                         x = 0
                     if y < 0:

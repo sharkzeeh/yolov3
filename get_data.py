@@ -57,9 +57,9 @@ if __name__ == "__main__":
     test_images = 'WIDER_test.zip'
     annotation_url = 'http://mmlab.ie.cuhk.edu.hk/projects/WIDERFace/support/bbx_annotation/wider_face_split.zip'
 
-    file_ids = ['0B6eKvaijfFUDQUUwd21EckhUbWs',
-                '0B6eKvaijfFUDd3dIRmpvSk8tLUk',
-                '0B6eKvaijfFUDbW4tdGpaYjgzZkU']
+    file_ids = ['17i_8a1nwFFGdplDNThisWbbpqvMQiyJf',
+				'1-q3w1amXlyNNHz4x7U1NQn36rGzAnEIf',
+				'1gnvl7iv4ExHuAUkdeQkX-W1UlW90mVJ9']
 
     to_download = [train_images, val_images, test_images]    
 
@@ -72,8 +72,6 @@ if __name__ == "__main__":
     for imgs in to_download:
         print(f'extracting {imgs}')
         extract_zip_file(os.path.join(data_dir, imgs), data_dir)
-
-    os.rename("../wider/images/WIDER_val", "../wider/images/WIDER_valid") 
 
     print('downloading the bounding boxes annotations...')
     annotation_zip_file = download_file_from_web_server(annotation_url,
