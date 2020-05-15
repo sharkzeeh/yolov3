@@ -6,7 +6,7 @@ from utils.datasets import *
 from utils.utils import *
 
 
-def detect(save_img=False):
+def detect(save_img=True):
     img_size = (320, 192) if ONNX_EXPORT else opt.img_size  # (320, 192) or (416, 256) or (608, 352) for (height, width)
     out, source, weights, half, view_img, save_txt = opt.output, opt.source, opt.weights, opt.half, opt.view_img, opt.save_txt
     webcam = source == '0' or source.startswith('rtsp') or source.startswith('http') or source.endswith('.txt')
@@ -99,7 +99,7 @@ def detect(save_img=False):
         # Apply Classifier
         if classify:
             pred = apply_classifier(pred, modelc, img, im0s)
-
+        persons = []
         # Process detections
         for i, det in enumerate(pred):  # detections per image
             if webcam:  # batch_size >= 1
@@ -126,7 +126,8 @@ def detect(save_img=False):
 
                     if save_img or view_img:  # Add bbox to image
                         label = '%s %.2f' % (names[int(cls)], conf)
-                        plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
+                        y1, x1, y2, x2 = plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
+                        persons.append((y1, x1, y2, x2))
 
             # Print time (inference + NMS)
             print('%sDone. (%.3fs)' % (s, t2 - t1))
@@ -140,7 +141,20 @@ def detect(save_img=False):
             # Save results (image with detections)
             if save_img:
                 if dataset.mode == 'images':
-                    cv2.imwrite(save_path, im0)
+                    pad = 20
+                    # choose the rightmost box - that will be the driver (if you aren't driving Nissan R34 or smth)
+                    x1, y1, x2, y2  = max(persons, key=lambda item: item[2]) 
+
+                    if y1 - pad >= 0:
+                        y1 -= pad
+                    if y2 + pad <= im0.shape[0]:
+                        y2 += pad
+                    if x1 - pad >= 0:
+                        x1 -= pad
+                    if x2 + pad <= im0.shape[1]:
+                        x2 += pad
+
+                    cv2.imwrite(save_path, im0[y1:y2, x1:x2])
                 else:
                     if vid_path != save_path:  # new video
                         vid_path = save_path
