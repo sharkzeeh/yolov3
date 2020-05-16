@@ -145,14 +145,19 @@ def detect(save_img=True):
                     # choose the rightmost box - that will be the driver (if you aren't driving Nissan R34 or smth)
                     x1, y1, x2, y2  = max(persons, key=lambda item: item[2]) 
 
-                    if y1 - pad >= 0:
-                        y1 -= pad
-                    if y2 + pad <= im0.shape[0]:
-                        y2 += pad
-                    if x1 - pad >= 0:
-                        x1 -= pad
-                    if x2 + pad <= im0.shape[1]:
-                        x2 += pad
+                    c_pad = lambda c1, c2: int((c2 - c1) * 0.25)
+                    x_pad = c_pad(x1, x2)
+                    y_pad = c_pad(y1, y2)
+
+                    if y1 - y_pad >= 0:
+                        y1 -= y_pad
+                    if y2 + y_pad <= im0.shape[0]:
+                        y2 += y_pad
+
+                    if x1 - x_pad >= 0:
+                        x1 -= x_pad
+                    if x2 + x_pad <= im0.shape[1]:
+                        x2 += x_pad
 
                     cv2.imwrite(save_path, im0[y1:y2, x1:x2])
                 else:
